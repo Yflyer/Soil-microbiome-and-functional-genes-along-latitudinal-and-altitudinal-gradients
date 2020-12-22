@@ -1,0 +1,175 @@
+########## 0_rawdata_process ######################
+# required package
+#library(ieggr)
+library(ggplot2)
+library(dplyr)
+library(vegan)
+library(geosphere)
+library(picante)
+library(dplyr)
+library(phyloseq)
+### clean NA and cut data by group
+clean_cut <- function(dt,map,group,cut=0.999){
+  group = map[[group]] %>% as.data.frame(.,row.names=rownames(map))
+  dt = dt %>% as.data.frame(.) %>% select_if(is.numeric) 
+  dt[is.na(dt)]=0
+  cut_result=geochip.trans(input=dt,grouping = group,note.col=0,cut = cut,cut.cross = 'treat',scaling = NA,trans = NA,save.wd=NULL)  
+  dt = cut_result$com %>% as.data.frame(.)
+}
+
+############ function used #############################
+group_count<-function(table,group){
+  ### this function is used to count the occurrence frequency of each row in a table in a specific grouping condition
+  ### such as: group_count(OTU,treatment)
+  ### then we will get each OTU occurrence assigned on treatment levels on rows
+  group= group %>% as.factor(.) %>% droplevels(.) # make factor
+  count_table = matrix(ncol= nlevels(group),nrow = nrow(table),dimnames = list(rownames(table),levels(group)))
+  for (i in 1:ncol(count_table)) {
+    dt = table[,group == colnames(count_table)[i]]
+    count_table[,i] = apply(dt, 1, function(x) sum(x>0))
+  }
+  count_table
+}
+
+counts_check = function(data_row,factor,level_counts=3,factor_counts=1){
+  # this will return the boolean list of  qualified level along data_row which meets requirement.
+  factor= factor %>% as.factor(.) %>% droplevels(.) # make factor
+  level_check_list = sapply(factor,function(x) data_row[,factor == x]>level_counts) 
+  sum(level_check_list)>factor_counts # this will print whether data row meets requirement of level_counts and factor_counts.
+}
+group_cut<-function(table,group,level_counts=3,group_counts=1){
+  ### this function is used to filter row data when you group count data table to meet requirement of group count frequency
+  ### such as: group_cut(OTU,treatment,level_counts=3,group_counts=1) the otu occured at least 3 times in a level of treatment will be filtered into new datatable.
+  otu_check_list = apply(table, 2, function(data_row) counts_check(data_row=data_row,factor=group,level_counts=level_counts,factor_counts=group_counts))
+  #table[otu_check_list,]
+  otu_check_list
+}
+
+group_sum<- function(table,group){
+  group= group %>% as.factor(.) %>% droplevels(.)
+  dt = matrix(ncol= nlevels(group),nrow = nrow(table),
+              dimnames = list(rownames(table),levels(group))) %>% as.data.frame(.)
+  for (i in levels(group)) {
+    dt[[i]] = apply(table,1,function(x) sum(x[group==i])) %>% as.numeric(.)
+  }
+  dt
+}
+
+group_mean<- function(table,group){
+  group= group %>% as.factor(.) %>% droplevels(.)
+  dt = matrix(ncol= nlevels(group),nrow = nrow(table),
+              dimnames = list(rownames(table),levels(group))) %>% as.data.frame(.)
+  for (i in levels(group)) {
+    dt[[i]] = apply(table,1,function(x) sum(x[group==i]))/summary(group)[i]
+  }
+  dt
+}
+
+###### get three column from dist martix
+col3m<-function(m,dist_name = 'dist'){
+  ###
+  m = as.matrix(m)
+  pair = data.frame(row=rownames(m)[row(m)[upper.tri(m,diag = F)]], 
+                    col=colnames(m)[col(m)[upper.tri(m,diag = F)]], 
+                    dist = m[upper.tri(m)])
+  colnames(pair)[3]=dist_name
+  pair
+}
+
+###### calculate the geospatial distance by lat and lon; need package: dplyr, geoshpere
+geo_dist = function(dis,Lon='Lon',Lat='Lat',unit = 'km'){
+  dis = dis[,c(Lon,Lat)] %>% as.matrix(.)
+  dis = apply(dis, 1, function(y) apply(dis, 1, function(x) distHaversine(y,x)))
+  if (unit == 'km'){dis/1000}
+}
+
+###### label the pair by factor
+label_pair = function(dt,meta,row='row',col='col',factor,sample){
+  # for diagonal-pair data to add pair tag
+  factor_row = sapply(dt[[row]], function(x) meta[[factor]][which(sample==x)])
+  factor_col = sapply(dt[[col]], function(x) meta[[factor]][which(sample==x)])
+  dt$pair=paste(factor_row,'-',factor_col)
+}
+
+######### stat tools
+get_aov_cof = function(formula,dt=NULL,cof='Pr(>F)',var=1){
+  # var: string or number, to locate the cof of var in the dataframe
+  # y : numeric vector
+  # x : treat
+  # waiting for extend to be complex formula
+  result = aov(as.formula(formula),data = dt) %>% summary(.)
+  result[[1]][var,cof]
+}
+
+get_mantel = function(var_list,var_name,Env_dt,tar,dist.type='euclid'){
+  # var_list = list or vector of the var you want to test or partially test
+  # var_name = name of the vars or category to name the dt
+  # Env_dt = all the env numeric data for mantel
+  # tar = the dist of OTU, etc, bray
+  # dist.type = env dist type
+  mantel.R = mantel.P = p.mantel.R =p.mantel.P = c()
+  for (i in 1:length(var_list)) {
+    var = unlist(var_list[i])
+    tar.dist = tar
+    var.dist = Env_dt[,var] %>% scale(.) %>% vegdist(.,dist.type)
+    ctr.dist = Env_dt[,!(all %in% var)] %>% scale(.) %>% vegdist(.,dist.type)
+    all.dist = Env_dt[,all] %>% scale(.) %>% vegdist(.,dist.type)
+    mantel=mantel(tar.dist,var.dist)
+    mantel.R[i] = mantel$statistic
+    mantel.P[i] = mantel$signif
+    p.mantel =  mantel.partial(tar.dist,all.dist,ctr.dist)
+    p.mantel.R[i] = p.mantel$statistic
+    p.mantel.P[i] = p.mantel$signif
+  }
+  mantel = data.frame(var_name,mantel.R,mantel.P,p.mantel.R,p.mantel.P)
+}
+
+#################
+get_var_name <- function(var) {
+  deparse(substitute(var))
+}
+
+labelp <- function(x){
+  if (x <= 0.05){x = "p < 0.05"} 
+  else if (x <= 0.1){x = "0.05 < p < 0.1"} 
+  else {x = "p > 0.1"}
+  x = factor(x,levels=c('p > 0.1','0.05 < p < 0.1','p < 0.05'))
+  }
+labelpstar <- function(x){
+  if (x <= 0.001){x = "***"}
+  else if (x <= 0.01){x = "**"}
+  else if (x <= 0.05){x = "*"} 
+  else if (x <= 0.1){x = "."}
+  else {x = ""}
+}
+
+labelpH <- function(x){
+  if (x < 5){x = "4 - 5"} 
+  else if (x < 6){x = "5 - 6"} 
+  else {x = "6 - 7"}
+  x = factor(x,levels=c('4 - 5','5 - 6','6 - 7'))
+}
+
+labelalt <- function(x){
+  if (x < 1000){x = "0-1000m"} 
+  else {x = "1000-1300m"}
+  x = factor(x,levels=c('0-1000m','1000-1300m'))
+}
+label_ln_dis <- function(x){
+  if (x < 6){x = "Small-scale (<150m)"} 
+  else {x = "Mid-scale (100-500km)"}
+  x = factor(x,levels=c('Small-scale (<150m)','Mid-scale (100-500km)'))
+}
+
+
+############
+writeOutput.F <- function(output.title, modelname) {
+  sink(file="modeloutputs.txt", append=TRUE) #creates an empty file; if TRUE, it will append to the file
+  print("##########################", row.names=FALSE)
+  print(output.title, row.names=FALSE)
+  print("##########################",  row.names=FALSE)
+  summary(modelname) #write summary of the model to text file 
+}
+
+
+
