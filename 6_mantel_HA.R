@@ -6,9 +6,9 @@ source('0_function.R')
 folder = paste0('6_multi.fun')
 dir.create(folder)
 ######################################
-load('project_HA_GeoChip')
+load('project_Altitude (HKV)_GeoChip')
 load('project_NA_GeoChip')
-load('project_SNJ_GeoChip')
+load('project_Altitude (SNNR)_GeoChip')
 ######################################
 load('project_HA_OTU')
 load('project_NA_OTU')
@@ -26,10 +26,10 @@ beta_tax=vegdist(t(OTU),method="bray",binary=FALSE)
 # partial mantel
 colnames(ENV)
 ############################################################
-all = c('Elevation','Water.potential','NH4.N','NO3.N','N','Total.Organic.Carbon','P','CN_ratio')
+all = c('Elevation','Rainfall','Water.potential','NH4.N','NO3.N','N','Total.Organic.Carbon','P','CN_ratio')
 geo.list=c('Elevation')
 mulfun.list=c('NH4.N','NO3.N','N','Total.Organic.Carbon','P','CN_ratio')
-clm.list = c('Water.potential')
+clm.list = c('Water.potential','Rainfall')
 partial.geo.list=all[!all %in% geo.list]
 partial.mulfun.list=all[!all %in% mulfun.list]
 partial.clm.list =all[!all %in% clm.list]
@@ -43,10 +43,14 @@ climate_condition = ENV[,clm.list] %>% scale(.) %>% vegdist(.,"euclid")
 partial.geo = ENV[,partial.geo.list] %>% scale(.) %>% vegdist(.,"euclid")
 partial.mulfun = ENV[,partial.mulfun.list] %>% scale(.) %>% vegdist(.,"euclid")
 partial.clm = ENV[,partial.clm.list] %>% scale(.) %>% vegdist(.,"euclid")
-###########################################################
+################# inner correlation ###################
+mantel(geographic_distance,climate_condition)
+mantel(Soil_multifunctionality,climate_condition)
+mantel(Soil_multifunctionality,geographic_distance)
+############################################################
 mantel.partial(beta_tax,geographic_distance,partial.geo)
-mantel.partial(beta_tax,Soil_multifunctionality,partial.mulfun)
 mantel.partial(beta_tax,climate_condition,partial.clm)
+mantel.partial(beta_tax,Soil_multifunctionality,partial.mulfun)
 ###############################################################
 ### mantel table on single var
 mantel_all = mantel(beta_tax,env_all)

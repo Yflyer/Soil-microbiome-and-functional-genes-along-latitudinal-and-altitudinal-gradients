@@ -66,15 +66,45 @@ group_mean<- function(table,group){
 }
 
 ###### get three column from dist martix
-col3m<-function(m,dist_name = 'dist'){
+col3m<-function(m,dist_name = 'dist',diag=F){
   ###
   m = as.matrix(m)
-  pair = data.frame(row=rownames(m)[row(m)[upper.tri(m,diag = F)]], 
-                    col=colnames(m)[col(m)[upper.tri(m,diag = F)]], 
+  pair = data.frame(row=rownames(m)[row(m)[upper.tri(m,diag = diag)]], 
+                    col=colnames(m)[col(m)[upper.tri(m,diag = diag)]], 
                     dist = m[upper.tri(m)])
   colnames(pair)[3]=dist_name
   pair
 }
+
+###### change three column back diag matrix or symmetric matrix 
+reshape_col3m<-function(m,name1='name1',name2='name2',value,diag=T,symmetric=F){
+  ### this function is very useful to reshpae the col3m data back to a diag matrix or symmetric matrix, which is able to generate dist or run mantel in a proper format
+  # m must be dataframe containing pairwise information
+  # name1: str, pairwise name1
+  # name1: str, pairwise name2
+  # value: str, the target index to reshape back
+  # format the col3m data
+  m = m[,c(name1,name2,value)]
+  colnames(m) = c('name1','name2','value')
+  # reshape
+  reshape.matrix = tidyr::spread(m,key='name2',value='value') %>% as.data.frame(.)
+  m.dist =  reshape.matrix[,-1]
+  rownames(m.dist) = reshape.matrix[['name1']]
+  
+  if(diag){
+  # add diagonal
+  m.dist[,rownames(m.dist)[!rownames(m.dist)%in%colnames(m.dist)]]=NA
+  m.dist[colnames(m.dist)[!colnames(m.dist)%in%rownames(m.dist)],]=NA
+  m.dist=m.dist[order(rownames(m.dist)),order(colnames(m.dist))]  
+  }
+
+  if(symmetric){
+  # make symmetric
+  m.dist[upper.tri(m.dist)] <- t(m.dist)[upper.tri(m.dist)] 
+  }
+  as.matrix(m.dist)
+}
+
 
 ###### calculate the geospatial distance by lat and lon; need package: dplyr, geoshpere
 geo_dist = function(dis,Lon='Lon',Lat='Lat',unit = 'km'){
@@ -161,6 +191,11 @@ label_ln_dis <- function(x){
   x = factor(x,levels=c('Small-scale (<150m)','Mid-scale (100-500km)'))
 }
 
+normalization<-function(y){
+  x<-y[!is.na(y)]
+  x<-(x - min(x)) / (max(x) - min(x))
+  y[!is.na(y)]<-x
+  return(y)}
 
 ############
 writeOutput.F <- function(output.title, modelname) {
