@@ -1,5 +1,4 @@
 source('0_function.R')
-library(ggthemes)
 library(scales)
 
 #################### save dir #######################
@@ -71,6 +70,7 @@ write.csv(file = paste0(folder,'/Type_count_',note,'.csv'),Type_count)
 # AO-plot
 library(RColorBrewer)
 library(ggplot2)
+library(ggthemes)
 PTs <- theme(legend.title = element_blank(),
              legend.position="bottom",
              #legend.key.size = unit(2, 'cm'),
@@ -85,14 +85,14 @@ guides = guides(color = guide_legend(override.aes = list(size = 5)))
 
 plot_name='1_AO_log_'
 ab_oc <- ggplot(ab_oc_data,aes(x=Log.occupancy,y=Log.abundance))+
-  geom_point(alpha = 0.5,stroke = 0,size=1,shape=16,aes(color=Type))
+  geom_point(alpha = 0.3,size=0.8,shape=16,aes(color=Type))
 ab_oc+PTs+facet_grid(~Study,scales = 'free_x')+syc+guides+scale_color_wsj()
 ggsave(filename = paste0(folder,'/',plot_name,'_',note,'.jpg'),dpi=900,width=17,height=8.5,units='cm')
 ggsave(filename = paste0(folder,'/',plot_name,'_',note,'.pdf'),dpi=900,width=17,height=8.5,units='cm')
 
 plot_name='1_AO_'
 ab_oc <- ggplot(ab_oc_data,aes(x=Occupancy,y=Log.abundance))+
-  geom_point(alpha = 0.5,stroke = 0,size=1,shape=16,aes(color=Type))
+  geom_point(alpha = 0.3,size=0.8,shape=16,aes(color=Type))
 ab_oc+PTs+facet_grid(~Study,scales = 'free_x')+syc+guides+scale_color_wsj()
 ggsave(filename = paste0(folder,'/',plot_name,'_',note,'.jpg'),dpi=900,width=17,height=8.5,units='cm')
 ggsave(filename = paste0(folder,'/',plot_name,'_',note,'.pdf'),dpi=900,width=17,height=8.5,units='cm')
