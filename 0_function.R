@@ -1,21 +1,40 @@
-########## 0_rawdata_process ######################
-# required package
-#library(ieggr)
-library(ggplot2)
+############## Yufei's toolkit ###################
+# Author: Yufei Zeng
+# Email: yfzeng0827@hotmail.com
+# web: https://github.com/Yflyer
+
+### load required package
+# data tool
 library(dplyr)
-library(vegan)
-library(geosphere)
-library(picante)
-library(dplyr)
+library(scales)
+library(stringr)
+library(usedist)
 library(phyloseq)
+library(geosphere)
+
+# plot
+library(ggplot2)
+library(ggsci)
+#library(ggtree)
+library(ggthemes)
+library(RColorBrewer)
+library(viridis)
+
+# ecology
+library(vegan)
+library(picante)
+library(NST)
+library(iCAMP)
+
+
+
+### Subjects explanation
+# table: rownames are features (OTUs, ASVs, or other  features); colnames are samples
+# map: rownames are samples; colnames are features of sample as metadata
+# group: a matched treatment information, grouping information or other categorized information could be used for table along samples. Generally extracted from map.
+
+### group operation tools
 ### clean NA and cut data by group
-clean_cut <- function(dt,map,group,cut=0.999){
-  group = map[[group]] %>% as.data.frame(.,row.names=rownames(map))
-  dt = dt %>% as.data.frame(.) %>% select_if(is.numeric) 
-  dt[is.na(dt)]=0
-  cut_result=geochip.trans(input=dt,grouping = group,note.col=0,cut = cut,cut.cross = 'treat',scaling = NA,trans = NA,save.wd=NULL)  
-  dt = cut_result$com %>% as.data.frame(.)
-}
 
 ############ function used #############################
 group_count<-function(table,group){
@@ -37,32 +56,56 @@ counts_check = function(data_row,factor,level_counts=3,factor_counts=1){
   level_check_list = sapply(factor,function(x) data_row[,factor == x]>level_counts) 
   sum(level_check_list)>factor_counts # this will print whether data row meets requirement of level_counts and factor_counts.
 }
-group_cut<-function(table,group,level_counts=3,group_counts=1){
+
+group_filter = function(table,group,freq=1,cut=1,group_cut=F){
   ### this function is used to filter row data when you group count data table to meet requirement of group count frequency
-  ### such as: group_cut(OTU,treatment,level_counts=3,group_counts=1) the otu occured at least 3 times in a level of treatment will be filtered into new datatable.
-  otu_check_list = apply(table, 2, function(data_row) counts_check(data_row=data_row,factor=group,level_counts=level_counts,factor_counts=group_counts))
-  #table[otu_check_list,]
-  otu_check_list
+  ### such as: group_filter(OTU,treatment,freq=3,cut=1,group_cut=F) the otu occured at least 3 times in a level of treatment will be filtered into new datatable.
+  ### if set group_cut=T, OTU which occurred lower than cut value in all groups will be discarded
+  group= group %>% as.factor(.) %>% droplevels(.) # make factor
+  table[is.na(table)]=0 ### must rm NA. since NA will make following judgement NA
+  count_table = matrix(ncol= nlevels(group),nrow = nrow(table),dimnames = list(rownames(table),levels(group))) # make count table for grouping
+  for (i in 1:ncol(count_table)) {
+    dt = table[,group == colnames(count_table)[i]] # make sub-dt for each group
+    count_table[,i] = apply(dt, 1, function(x) sum(x>0)) # sum up this sub-dt at each row from this assigned group
+  }
+  ### get filter index ###
+  if (group_cut==FALSE) {
+    otu_check_list = apply(count_table, 1, function(table_row) sum(table_row) >freq)
+    table = table[otu_check_list,]
+  }else{
+    otu_check_list = apply(count_table, 1, function(table_row) sum(table_row>=freq) >= cut)
+    table = table[otu_check_list,]
+  }
+  ###
+  table
 }
 
-group_sum<- function(table,group){
-  group= group %>% as.factor(.) %>% droplevels(.)
-  dt = matrix(ncol= nlevels(group),nrow = nrow(table),
-              dimnames = list(rownames(table),levels(group))) %>% as.data.frame(.)
-  for (i in levels(group)) {
-    dt[[i]] = apply(table,1,function(x) sum(x[group==i])) %>% as.numeric(.)
+group_sum<- function(table,group,margin=1){
+  ### we can use margin to cluster samples(row) or otu(col) according to a grouping factor
+  group = as.factor(group)
+  level= unique(group)
+  if(margin==1){
+    dt = sapply(level,function(one_level) rowSums(table[,group==one_level]))
+    colnames(dt)=unique(group)
+  }else {
+    dt = sapply(level,function(one_level) colSums(table[group==one_level,])) %>% t(.)
+    rownames(dt)=unique(group)
   }
-  dt
+  as.data.frame(dt)
 }
 
-group_mean<- function(table,group){
-  group= group %>% as.factor(.) %>% droplevels(.)
-  dt = matrix(ncol= nlevels(group),nrow = nrow(table),
-              dimnames = list(rownames(table),levels(group))) %>% as.data.frame(.)
-  for (i in levels(group)) {
-    dt[[i]] = apply(table,1,function(x) sum(x[group==i]))/summary(group)[i]
+group_mean<- function(table,group,by_row=FALSE){
+  ### we can use margin to cluster samples(row) or otu(col) according to a grouping factor
+  group = as.factor(group)
+  level= unique(group)
+  if(by_row==F){
+    dt = sapply(level,function(one_level) rowMeans(table[,group==one_level]))
+    colnames(dt)=unique(group)
+  }else {
+    dt = sapply(level,function(one_level) colMeans(table[group==one_level,])) %>% t(.)
+    rownames(dt)=unique(group)
   }
-  dt
+  as.data.frame(dt)
 }
 
 ###### get three column from dist martix
@@ -113,6 +156,48 @@ geo_dist = function(dis,Lon='Lon',Lat='Lat',unit = 'km'){
   if (unit == 'km'){dis/1000}
 }
 
+GeoChip_TAX_reformat <- function(TAX){
+  TAX=as.matrix(TAX)
+  colnames(TAX)=str_to_title(colnames(TAX))
+  TAX=TAX[,c("Gene","Gene_category","Subcategory1","Subcategory2","Organism","Lineage")]
+  TAX[,"Gene"]=str_to_lower(TAX[,"Gene"])
+  TAX[,"Gene_category"]=str_to_lower(TAX[,"Gene_category"])
+  ### Geochip taxa
+  TAX[is.na(TAX[,'Lineage']),'Lineage']='unknown_taxa'
+  ###
+  taxon_list = str_split(TAX[,'Lineage'],';') 
+  Domain = sapply(taxon_list,`[`,1) %>% str_split(.,':') %>% sapply(.,`[`,2) %>% str_to_lower(.)
+  Domain[is.na(Domain)]='unknown_taxa'
+  Domain[Domain=='']='unknown_taxa'
+  TAX=cbind(TAX,Domain)
+  #
+  Phylum = sapply(taxon_list,`[`,2) %>% str_split(.,':') %>% sapply(.,`[`,2) %>% str_to_lower(.)
+  Phylum[is.na(Phylum)]='unknown_taxa'
+  Phylum[Phylum=='']='unknown_taxa'
+  TAX=cbind(TAX,Phylum)
+  #
+  Class = sapply(taxon_list,`[`,3) %>% str_split(.,':') %>% sapply(.,`[`,2) %>% str_to_lower(.)
+  Class[is.na(Class)]='unknown_taxa'
+  Class[Class=='']='unknown_taxa'
+  TAX=cbind(TAX,Class)  
+  #
+  Order = sapply(taxon_list,`[`,4) %>% str_split(.,':') %>% sapply(.,`[`,2) %>% str_to_lower(.)
+  Order[is.na(Order)]='unknown_taxa'
+  Order[Order=='']='unknown_taxa'
+  TAX=cbind(TAX,Order)  
+  #
+  Family = sapply(taxon_list,`[`,5) %>% str_split(.,':') %>% sapply(.,`[`,2) %>% str_to_lower(.)
+  Family[is.na(Family)]='unknown_taxa'
+  Family[Family=='']='unknown_taxa'
+  TAX=cbind(TAX,Family)  
+  #
+  Genus = sapply(taxon_list,`[`,6) %>% str_split(.,':') %>% sapply(.,`[`,2) %>% str_to_lower(.)
+  Genus[is.na(Genus)]='unknown_taxa'
+  Genus[Genus=='']='unknown_taxa'
+  TAX=cbind(TAX,Genus)  
+  
+  data.frame(TAX)
+}
 ###### label the pair by factor
 label_pair = function(dt,meta,row='row',col='col',factor,sample){
   # for diagonal-pair data to add pair tag
@@ -190,6 +275,8 @@ label_ln_dis <- function(x){
   else {x = "Mid-scale (100-500km)"}
   x = factor(x,levels=c('Small-scale (<150m)','Mid-scale (100-500km)'))
 }
+
+specify_decimal <- function(x, k) trimws(format(round(x, k), nsmall=k))
 
 normalization<-function(y){
   x<-y[!is.na(y)]

@@ -1,0 +1,44 @@
+     rmsea        cfi        tli 
+0.09203819 0.99524640 0.97147839 
+lavaan 0.6-8 ended normally after 28 iterations
+
+  Estimator                                         ML
+  Optimization method                           NLMINB
+  Number of model parameters                        13
+                                                      
+  Number of observations                          7875
+                                                      
+Model Test User Model:
+                                                      
+  Test statistic                               135.419
+  Degrees of freedom                                 2
+  P-value (Chi-square)                           0.000
+
+Parameter Estimates:
+
+  Standard errors                             Standard
+  Information                                 Expected
+  Information saturated (h1) model          Structured
+
+Regressions:
+                       Estimate  Std.Err  z-value  P(>|z|)
+  Bray ~                                                  
+    pH                    0.371    0.005   70.494    0.000
+    Rainfall              0.193    0.010   18.974    0.000
+    Distance              0.248    0.007   36.482    0.000
+    Temperature           0.396    0.011   36.330    0.000
+  Temperature ~                                           
+    Distance              0.225    0.006   35.180    0.000
+    Rainfall              0.737    0.006  115.438    0.000
+  Multifuncitonality ~                                    
+    Bray                  0.506    0.018   28.029    0.000
+    pH                   -0.123    0.012  -10.580    0.000
+    Rainfall             -0.527    0.018  -29.367    0.000
+    Temperature           0.589    0.020   29.235    0.000
+
+Variances:
+                   Estimate  Std.Err  z-value  P(>|z|)
+   .Bray              0.208    0.003   62.750    0.000
+   .Temperature       0.222    0.004   62.750    0.000
+   .Multifunctnlty    0.624    0.010   62.750    0.000
+

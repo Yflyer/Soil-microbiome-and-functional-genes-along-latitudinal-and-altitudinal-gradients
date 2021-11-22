@@ -7,87 +7,86 @@ folder = paste0('2_Decay')
 dir.create(folder)
 # This code is to investigte the gene decay relation ship
 ################################################
-
-#################### Altitude (SNNR) ########################
-load('project_Altitude (SNNR)_GeoChip')
-project = get(paste0('project_',prefix,'_',note))
-OTU <- otu_table(project)
-ENV <- sample_data(project) 
-
-jaccard = vegdist(t(OTU), method="jaccard", binary=FALSE) %>% col3m(.,dist_name ='jaccard')
-bray = vegdist(t(OTU), method="bray", binary=FALSE) %>% col3m(.,dist_name ='bray')
-sorensen = vegdist(t(OTU), method="bray", binary=TRUE) %>% col3m(.,dist_name ='sorensen')
-distance = geo_dist(ENV) %>% col3m(.,dist_name = 'distance')
-#################### elevation distance
-distance.ele = ENV[,'Elevation'] %>% dist(.)/1000
-distance.ele = col3m(distance.ele,dist_name = 'distance') 
-distance$distance=distance$distance+distance.ele$distance
-
-decay_data = Reduce(function(x, y) inner_join(x, y,by=c('row','col')),list(distance,jaccard,bray,sorensen))
-
-#################### decay model examniation
-decay_data$Similarity.bray=1-decay_data$bray
-decay_data$ln.distance = log1p(decay_data$distance)
-#################################################################
-decay_data$Study = prefix
-assign(paste0('decay_data_',prefix),decay_data)
-################################ SNNR #################################
-
-#################### Altitude (HKV) ############################### ##################################
-load('project_Altitude (HKV)_GeoChip')
-project = get(paste0('project_',prefix,'_',note))
-OTU <- otu_table(project)
-ENV <- sample_data(project) #%>% as.data.frame(.) 
-
-jaccard = vegdist(t(OTU), method="jaccard", binary=FALSE) %>% col3m(.,dist_name ='jaccard')
-bray = vegdist(t(OTU), method="bray", binary=FALSE) %>% col3m(.,dist_name ='bray')
-sorensen = vegdist(t(OTU), method="bray", binary=TRUE) %>% col3m(.,dist_name ='sorensen')
-distance = geo_dist(ENV) %>% col3m(.,dist_name = 'distance')
-#################### elevation distance
-distance.ele = ENV[,'Elevation'] %>% dist(.)/1000
-distance.ele = col3m(distance.ele,dist_name = 'distance') 
-distance$distance=distance$distance+distance.ele$distance
-
-decay_data = Reduce(function(x, y) inner_join(x, y,by=c('row','col')),list(distance,jaccard,bray,sorensen))
-#################### decay model examniation
-decay_data$Similarity.bray=1-decay_data$bray
-decay_data$ln.distance = log1p(decay_data$distance)
-decay_data$Study = prefix
-assign(paste0('decay_data_',prefix),decay_data)
-
-#################### Latitude (NA) ##############################
-load('project_Latitude (North America)_GeoChip')
-project = get(paste0('project_',prefix,'_',note))
-OTU <- otu_table(project)
-ENV <- sample_data(project) #%>% as.data.frame(.) 
-
-jaccard = vegdist(t(OTU), method="jaccard", binary=FALSE) %>% col3m(.,dist_name ='jaccard')
-bray = vegdist(t(OTU), method="bray", binary=FALSE) %>% col3m(.,dist_name ='bray')
-sorensen = vegdist(t(OTU), method="bray", binary=TRUE) %>% col3m(.,dist_name ='sorensen')
-distance = geo_dist(ENV) %>% col3m(.,dist_name = 'distance')
-#################### site-inner distance (for latitudinal dataset)
-inner_distance = data.frame()
-for (i in 1:nlevels(ENV$Site)) {
-  dist = ENV[ENV$Site==levels(ENV$Site)[i],c('X','Y')] %>% dist(.)/1000 
-  dist = col3m(dist,dist_name = 'inner_distance')
-  inner_distance=rbind(inner_distance,dist)
+beta_pack_alt <- function(OTU,ENV){
+  #jaccard = vegdist(t(OTU), method="jaccard", binary=FALSE) %>% col3m(.,dist_name ='jaccard')
+  bray = vegdist(t(OTU), method="bray", binary=FALSE) %>% col3m(.,dist_name ='bray')
+  #sorensen = vegdist(t(OTU), method="bray", binary=TRUE) %>% col3m(.,dist_name ='sorensen')
+  distance = geo_dist(ENV) %>% col3m(.,dist_name = 'distance')
+  #################### elevation distance
+  distance.ele = ENV[,'Elevation'] %>% dist(.)/1000
+  distance.ele = col3m(distance.ele,dist_name = 'distance') 
+  distance$distance=distance$distance+distance.ele$distance
+  
+  decay_data = Reduce(function(x, y) inner_join(x, y,by=c('row','col')),list(distance,bray))
+  
+  #################### decay model examniation
+  decay_data$Similarity.bray=1-decay_data$bray
+  decay_data$ln.distance = log1p(decay_data$distance)
+  #################################################################
+  decay_data$Study = prefix
+  decay_data
 }
-inner_distance = left_join(distance,inner_distance,by=c('row','col'))
-inner_distance[is.na(inner_distance)]=0
-distance$distance=inner_distance$distance+inner_distance$inner_distance
-####################################################
-decay_data = Reduce(function(x, y) inner_join(x, y,by=c('row','col')),list(distance,jaccard,bray,sorensen))
-decay_data$Similarity.bray=1-decay_data$bray
-decay_data$ln.distance = log1p(decay_data$distance)
-decay_data$Study = 'Latitude (North America)'
-assign(paste0('decay_data_',prefix),decay_data)
+
+beta_pack_ele <- function(OTU,ENV){
+  #jaccard = vegdist(t(OTU), method="jaccard", binary=FALSE) %>% col3m(.,dist_name ='jaccard')
+  bray = vegdist(t(OTU), method="bray", binary=FALSE) %>% col3m(.,dist_name ='bray')
+  #sorensen = vegdist(t(OTU), method="bray", binary=TRUE) %>% col3m(.,dist_name ='sorensen')
+  distance = geo_dist(ENV) %>% col3m(.,dist_name = 'distance')
+  #################### site-inner distance (for latitudinal dataset)
+  inner_distance = data.frame()
+  for (i in 1:nlevels(ENV$Site)) {
+    dist = ENV[ENV$Site==levels(ENV$Site)[i],c('X','Y')] %>% dist(.)/1000 
+    dist = col3m(dist,dist_name = 'inner_distance')
+    inner_distance=rbind(inner_distance,dist)
+  }
+  inner_distance = left_join(distance,inner_distance,by=c('row','col'))
+  inner_distance[is.na(inner_distance)]=0
+  distance$distance=inner_distance$distance+inner_distance$inner_distance
+  ####################################################
+  decay_data = Reduce(function(x, y) inner_join(x, y,by=c('row','col')),list(distance,bray))
+  decay_data$Similarity.bray=1-decay_data$bray
+  decay_data$ln.distance = log1p(decay_data$distance)
+  decay_data$Study = prefix
+  decay_data
+}
+#################### Altitude (SNNR) ########################
+decay_pack <- function(data){
+  load(paste0('project_Altitude (SNNR)_',data))
+  project = get(paste0('project_',prefix,'_',note))
+  OTU <- otu_table(project)
+  ENV <- sample_data(project) 
+  decay_data = beta_pack_alt(OTU,ENV)
+  assign(paste0('decay_data_',prefix),decay_data)
+  ################################ SNNR #################################
+  
+  #################### Altitude (HKV) ############################### ##################################
+  load(paste0('project_Altitude (HKV)_',data))
+  project = get(paste0('project_',prefix,'_',note))
+  OTU <- otu_table(project)
+  ENV <- sample_data(project) #%>% as.data.frame(.) 
+  decay_data = beta_pack_alt(OTU,ENV)
+  assign(paste0('decay_data_',prefix),decay_data)
+  
+  #################### Latitude (NA) ##############################
+  load(paste0('project_Latitude (North America)_',data))
+  project = get(paste0('project_',prefix,'_',note))
+  OTU <- otu_table(project)
+  ENV <- sample_data(project) #%>% as.data.frame(.)
+  decay_data = beta_pack_ele(OTU,ENV)
+  assign(paste0('decay_data_',prefix),decay_data)
+  
+  decay_data = Reduce(function(x, y) rbind(x,y),list(`decay_data_Altitude (HKV)`,`decay_data_Latitude (North America)`,`decay_data_Altitude (SNNR)`))
+  decay_data$Study = factor(decay_data$Study,levels = c('Latitude (North America)','Altitude (SNNR)','Altitude (HKV)'))
+  decay_data
+}
+#################################################
+decay_data = decay_pack('GeoChip')
+
 
 model.result = betapart::decay.model(decay_data$Similarity.bray,decay_data$ln.distance,perm=999)
 model.result$p.value
 ############################### NA #########################
 
-decay_data = Reduce(function(x, y) rbind(x,y),list(`decay_data_Altitude (HKV)`,`decay_data_Latitude (North America)`,`decay_data_Altitude (SNNR)`))
-decay_data$Study = factor(decay_data$Study,levels = c('Latitude (North America)','Altitude (SNNR)','Altitude (HKV)'))
 # plot
 library(ggthemes)
 PTs <- theme(#text = element_text(size=12),

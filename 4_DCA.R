@@ -24,6 +24,7 @@ method = 'bray'
 load('project_Latitude (North America)_OTU')
 project = get(paste0('project_',prefix,'_',note))
 dt_dca=dca_table(project,prefix,note,Gradient='Lat')
+dt_dca$Gradient=round(dt_dca$Gradient,0)
 assign(paste0('dt_dca',prefix,'_',note),dt_dca)
 ###############################################################################
 load('project_Altitude (SNNR)_OTU')
@@ -44,6 +45,7 @@ assign(paste0('dt_dca',prefix,'_',note),dt_dca)
 load('project_Latitude (North America)_GeoChip')
 project = get(paste0('project_',prefix,'_',note))
 dt_dca=dca_table(project,prefix,note,Gradient='Lat')
+dt_dca$Gradient=round(dt_dca$Gradient,0)
 assign(paste0('dt_dca',prefix,'_',note),dt_dca)
 ###############################################################################
 load('project_Altitude (SNNR)_GeoChip')
@@ -64,9 +66,9 @@ dt_dca$Gradient = as.factor(dt_dca$Gradient)
 
 #### plot
 PTs <- theme(panel.background=element_blank(),
-             text = element_text(size=12),
+             text = element_text(size=24),
              axis.title=element_blank(),
-             legend.position="top",
+             legend.position="none",
              panel.border = element_rect(colour = "grey", fill=NA, size=1))
 cycle = stat_ellipse(geom = "polygon",aes(fill= Gradient),level = 0.9,alpha=0.2)
 round = stat_ellipse(aes(color= Gradient),level = 0.9)

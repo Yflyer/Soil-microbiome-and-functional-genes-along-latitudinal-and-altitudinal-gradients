@@ -2,7 +2,6 @@ library(dplyr)
 library(vegan)
 library(phyloseq)
 library(picante)
-library(ieggr)
 source('0_function.R')
 ### Meta information  
 meta <- read.csv('0_data/merge_mapping.csv',header = TRUE,row.names = 1,sep=',',na.strings = "NA")
@@ -42,15 +41,14 @@ project = phyloseq(OTU,TAX,ENV,tree)
 OTU <- otu_table(project)
 ENV = sample_data(project)
 ### remove site-singleton
-OTU = clean_cut(OTU,map=ENV,group = 'Site',cut=1) %>% otu_table(.,taxa_are_rows = T)
-OTU = OTU[,order(colnames(OTU))]
-colnames(OTU)=rownames(ENV)
+#OTU = group_filter(OTU,ENV$Site,group_cut = T)
 
 ########## data process (resample)
 set.seed(930827)
 project = phyloseq(OTU,TAX,ENV,tree)
 colSums(OTU) %>% sort(.) 
-project = rarefy_even_depth(project,sample.size = 14000) 
+project = rarefy_even_depth(project)
+#project = rarefy_even_depth(project,sample.size = 14000) 
 
 
 #########
@@ -59,6 +57,7 @@ project = rarefy_even_depth(project,sample.size = 14000)
   sample_data(project)$Shannon=diversity(t(otu_table(project)),index='shannon')
   sample_data(project)$Simpson=diversity(t(otu_table(project)),index='simpson')
   sample_data(project)$Richness=specnumber(t(otu_table(project)))
+  sample_data(project)$Evenness=sample_data(project)$Shannon/log(sample_data(project)$Richness)
   PD = pd(t(otu_table(project)), phy_tree(project), include.root = F)
   sample_data(project)$PD = PD$PD 
 }
@@ -101,15 +100,14 @@ dt = dt[!singleton_index,]
 OTU <- otu_table(project)
 ENV = sample_data(project)
 ### remove site-singleton
-OTU = clean_cut(OTU,map=ENV,group = 'Site',cut=1) %>% otu_table(.,taxa_are_rows = T)
-OTU = OTU[,order(colnames(OTU))]
-colnames(OTU)=rownames(ENV)
+#OTU = group_filter(OTU,ENV$Site,group_cut = T)
 
 ########## data process (resample)
 set.seed(930827)
 project = phyloseq(OTU,TAX,ENV,tree)
 colSums(OTU) %>% sort(.) 
-project = rarefy_even_depth(project,sample.size = 14000) 
+project = rarefy_even_depth(project)
+#project = rarefy_even_depth(project,sample.size = 14000) 
 
 #########
 ### other indexes and add alpha
@@ -117,6 +115,7 @@ project = rarefy_even_depth(project,sample.size = 14000)
   sample_data(project)$Shannon=diversity(t(otu_table(project)),index='shannon')
   sample_data(project)$Simpson=diversity(t(otu_table(project)),index='simpson')
   sample_data(project)$Richness=specnumber(t(otu_table(project)))
+  sample_data(project)$Evenness=sample_data(project)$Shannon/log(sample_data(project)$Richness)
   PD = pd(t(otu_table(project)), phy_tree(project), include.root = F)
   sample_data(project)$PD = PD$PD 
 }
@@ -160,15 +159,14 @@ dt = dt[!singleton_index,]
 OTU <- otu_table(project)
 ENV = sample_data(project)
 ### remove site-singleton
-OTU = clean_cut(OTU,map=ENV,group = 'Site',cut=1) %>% otu_table(.,taxa_are_rows = T)
-OTU = OTU[,order(colnames(OTU))]
-colnames(OTU)=rownames(ENV)
+#OTU = group_filter(OTU,ENV$Site,group_cut = T)
 
 ########## data process (resample)
 set.seed(930827)
 project = phyloseq(OTU,TAX,ENV,tree)
 colSums(OTU) %>% sort(.) 
-project = rarefy_even_depth(project,sample.size = 14000) 
+project = rarefy_even_depth(project)
+#project = rarefy_even_depth(project,sample.size = 14000) 
 
 
 #########
@@ -177,6 +175,7 @@ project = rarefy_even_depth(project,sample.size = 14000)
   sample_data(project)$Shannon=diversity(t(otu_table(project)),index='shannon')
   sample_data(project)$Simpson=diversity(t(otu_table(project)),index='simpson')
   sample_data(project)$Richness=specnumber(t(otu_table(project)))
+  sample_data(project)$Evenness=sample_data(project)$Shannon/log(sample_data(project)$Richness)
   PD = pd(t(otu_table(project)), phy_tree(project), include.root = F)
   sample_data(project)$PD = PD$PD 
 }

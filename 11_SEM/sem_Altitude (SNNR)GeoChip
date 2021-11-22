@@ -1,0 +1,46 @@
+     rmsea        cfi        tli 
+0.06523437 0.98970179 0.96395626 
+lavaan 0.6-8 ended normally after 23 iterations
+
+  Estimator                                         ML
+  Optimization method                           NLMINB
+  Number of model parameters                        14
+                                                      
+  Number of observations                          1953
+                                                      
+Model Test User Model:
+                                                      
+  Test statistic                                37.244
+  Degrees of freedom                                 4
+  P-value (Chi-square)                           0.000
+
+Parameter Estimates:
+
+  Standard errors                             Standard
+  Information                                 Expected
+  Information saturated (h1) model          Structured
+
+Regressions:
+                       Estimate  Std.Err  z-value  P(>|z|)
+  Bray ~                                                  
+    Rainfall             -0.068    0.031   -2.206    0.027
+    Distance             -0.074    0.036   -2.032    0.042
+    Temperature           0.084    0.042    1.992    0.046
+  Temperature ~                                           
+    Distance              0.784    0.014   55.814    0.000
+  Rainfall ~                                              
+    Temperature           0.682    0.017   41.265    0.000
+  Multifuncitonality ~                                    
+    Bray                  0.113    0.022    5.136    0.000
+    Rainfall              0.037    0.030    1.237    0.216
+    Temperature           0.088    0.041    2.150    0.032
+    Distance              0.060    0.039    1.548    0.122
+    pH                    0.066    0.027    2.439    0.015
+
+Variances:
+                   Estimate  Std.Err  z-value  P(>|z|)
+   .Bray              0.994    0.032   31.249    0.000
+   .Temperature       0.385    0.012   31.249    0.000
+   .Rainfall          0.534    0.017   31.249    0.000
+   .Multifunctnlty    0.946    0.030   31.249    0.000
+

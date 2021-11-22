@@ -3,21 +3,14 @@ library(vegan)
 library(phyloseq)
 library(ggplot2)
 source('0_function.R')
-load('0_project.rdata')
 
-
-project = project_SNJ
-prefix='snj'
-
-project = project_HA
-prefix='ha'
-
-project = project_NA
-prefix='na'
-
-#########################################
+######################################
+load('project_Latitude (North America)_OTU')
+load('project_Altitude (SNNR)_OTU')
+load('project_Altitude (HKV)_OTU')
+######################################
 level = 'phylum'
-
+project = get(paste0('project_',prefix,'_',note))
 rank_names(project)
 tax_table(project)
 ### different level
@@ -27,7 +20,7 @@ project = tax_glom(project,taxrank = 'D1')
 
 sample_sums(project)
 project = rarefy_even_depth(project,sample.size = min(sample_sums(project)))
-project = rarefy_even_depth(project,sample.size = 20000)
+project = rarefy_even_depth(project,sample.size = 14000)
 ###################
 OTU <- otu_table(project)
 TAX <- tax_table(project)

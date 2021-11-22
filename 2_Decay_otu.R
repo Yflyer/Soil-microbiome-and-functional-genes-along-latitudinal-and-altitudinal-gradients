@@ -113,15 +113,15 @@ PTs <- theme(#text = element_text(size=12),
              panel.border = element_rect(colour = "grey", fill=NA, size=1))
 
 # log.distance
-syc = scale_y_continuous(labels = scales::number_format(accuracy = 0.01,decimal.mark = '.'))
+syc = scale_y_continuous(labels = scales::number_format(accuracy = 0.01,decimal.mark = '.'),limits = c(0,1))
 sxc = scale_x_continuous(labels = scales::number_format(accuracy = 0.1,decimal.mark = '.'))
 
 SDecay <- ggplot(decay_data,aes(x=ln.distance,y=Similarity.bray))+geom_point(alpha = 0.5,stroke = 0,size=1.5,shape=16,aes(color=Study))+geom_smooth(method='lm',aes(color=Study),se = F)
 plot = SDecay+ylim(c(0,1))+facet_grid(~Study,scales = 'free')#+lm_Site+Ps_Sitescm_Site+sfm_Site
 theme_set(theme_bw()+theme(legend.position = "none"))
 plot+scale_color_economist()+syc+sxc
-ggsave(filename = paste0(folder,'/','3_Decay_',note,'_log_bray.pdf'),dpi=900,width=19.5,height=7.5,units='cm')
-ggsave(filename = paste0(folder,'/','3_Decay_',note,'_log_bray.jpg'),dpi=900,width=19.5,height=7.5,units='cm')
+ggsave(filename = paste0(folder,'/','3_Decay_',note,'_log_bray.pdf'),dpi=900,width=17.5,height=7.5,units='cm')
+ggsave(filename = paste0(folder,'/','3_Decay_',note,'_log_bray.jpg'),dpi=900,width=17.5,height=7.5,units='cm')
 
 
 

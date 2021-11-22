@@ -1,0 +1,25 @@
+Method,Comparison,Study,ab_vs_dv_t,ab_vs_dv_p,dv_vs_cp_t,dv_vs_cp_p,ab_vs_cp_t,ab_vs_cp_p,ab_vs_dv_cs,ab_vs_dv_kp,dv_vs_cp_cs,dv_vs_cp_kp,ab_vs_cp_cs,ab_vs_cp_kp
+Bray-Curits,Between-group,Latitude (North America),64.562,0,-164.8,0,-47.877,0,3100.842,0,9790.253,0,2193.523,0
+Bray-Curits,Within-group,Latitude (North America),25.206,0,-62.244,0,-18.906,0,483.04,0,1812.599,0,409.999,0
+Jaccard,Between-group,Latitude (North America),65.823,0,-178.308,0,-51.319,0,3100.842,0,9790.253,0,2193.523,0
+Jaccard,Within-group,Latitude (North America),25.606,0,-67.287,0,-20.434,0,483.04,0,1812.599,0,409.999,0
+Morisita-Horn,Between-group,Latitude (North America),-36.734,0,-214.749,0,-216.606,0,2368.857,0,9921.75,0,9921.75,0
+Morisita-Horn,Within-group,Latitude (North America),-15.58,0,-81.301,0,-82.007,0,491.894,0,1889.25,0,1889.25,0
+Sorensen,Between-group,Latitude (North America),-74.443,0,-219.875,0,-226.531,0,5858.842,0,9926.343,0,10294.304,0
+Sorensen,Within-group,Latitude (North America),-30.889,0,-82.908,0,-85.4,0,1037.173,0,1890.305,0,1960.814,0
+Bray-Curits,Between-group,Altitude (SNNR),35.359,0,-96.917,0,-35.606,0,978.892,0,2419.642,0,985.274,0
+Bray-Curits,Within-group,Altitude (SNNR),15.822,0,-44.788,0,-16.829,0,203.878,0,486.112,0,219.166,0
+Jaccard,Between-group,Altitude (SNNR),36.67,0,-107.455,0,-37.421,0,978.892,0,2419.642,0,985.274,0
+Jaccard,Within-group,Altitude (SNNR),16.462,0,-49.706,0,-17.681,0,203.878,0,486.112,0,219.166,0
+Morisita-Horn,Between-group,Altitude (SNNR),-11.872,0,-117.324,0,-118.011,0,178.156,0,2438.25,0,2438.25,0
+Morisita-Horn,Within-group,Altitude (SNNR),-5.088,0,-53.984,0,-54.274,0,38.517,0,489.751,0,489.751,0
+Sorensen,Between-group,Altitude (SNNR),-28.184,0,-122.718,0,-125.161,0,973.461,0,2445.336,0,2563.856,0
+Sorensen,Within-group,Altitude (SNNR),-14.145,0,-56.547,0,-57.609,0,214.722,0,491.321,0,519.045,0
+Bray-Curits,Between-group,Altitude (HKV),26.821,0,-78.635,0,-30.533,0,595.88,0,1569.333,0,701.492,0
+Bray-Curits,Within-group,Altitude (HKV),4.736,0,-13.059,0,-5.508,0,28.112,0,96.609,0,43.938,0
+Jaccard,Between-group,Altitude (HKV),27.66,0,-85.019,0,-31.745,0,595.88,0,1569.333,0,701.492,0
+Jaccard,Within-group,Altitude (HKV),4.876,0,-14.097,0,-5.92,0,28.112,0,96.609,0,43.938,0
+Morisita-Horn,Between-group,Altitude (HKV),-18.503,0,-92.875,0,-93.647,0,734.924,0,1583.25,0,1583.25,0
+Morisita-Horn,Within-group,Altitude (HKV),-3.572,0,-15.072,0,-15.201,0,52.996,0,107.255,0,107.255,0
+Sorensen,Between-group,Altitude (HKV),-29.861,0,-98.599,0,-100.435,0,1066.593,0,1585.384,0,1657.476,0
+Sorensen,Within-group,Altitude (HKV),-6.372,0,-15.714,0,-16.089,0,43.775,0,107.57,0,112.435,0

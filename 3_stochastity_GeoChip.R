@@ -5,14 +5,15 @@ source('0_function.R')
 
 #########################################################################
 # This code is to investigte the statisics of biodata 
-###############################
-folder = '3_tnst'
-dir.create(folder)
+
 
 ############################################
 load('project_Latitude (North America)_GeoChip')
 project = project = get(paste0('project_',prefix,'_',note))
-
+###############################
+folder = paste0(prefix,'_',note)
+dir.create(folder)
+###############################
 OTU <- otu_table(project) %>% data.frame(.)  
 ENV <- sample_data(project)
 
@@ -20,6 +21,7 @@ for (i in 1:ncol(OTU)) {
   x=as.numeric(OTU[i,]) * 10000
   OTU[i,]=round(x)
 }
+#dt[is.na(dt)]=0
 
 Site = ENV$Site %>% as.data.frame(.)
 rownames(Site)=sample_names(ENV)
@@ -29,7 +31,7 @@ print('NST start')
 tnst_mr=tNST(comm=t(OTU), group=Site, dist.method="bray",
              abundance.weighted=TRUE, rand=100,
              nworker=80, null.model="PF", between.group=TRUE,
-             SES=F, RC=F)
+             SES=T, RC=T)
 
 summary(tnst_mr$index.pair$MST.ij.bray)
 assign(paste0('tnst_mr_',prefix,'_',note),tnst_mr) 
@@ -56,7 +58,7 @@ print('NST start')
 tnst_mr=tNST(comm=t(OTU), group=Site, dist.method="bray",
              abundance.weighted=TRUE, rand=100,
              nworker=80, null.model="PF", between.group=TRUE,
-             SES=F, RC=F)
+             SES=T, RC=T)
 
 summary(tnst_mr$index.pair$MST.ij.bray)
 assign(paste0('tnst_mr_',prefix,'_',note),tnst_mr) 
@@ -83,7 +85,7 @@ print('NST start')
 tnst_mr=tNST(comm=t(OTU), group=Site, dist.method="bray",
              abundance.weighted=TRUE, rand=100,
              nworker=80, null.model="PF", between.group=TRUE,
-             SES=F, RC=F)
+             SES=T, RC=T)
 
 summary(tnst_mr$index.pair$MST.ij.bray)
 assign(paste0('tnst_mr_',prefix,'_',note),tnst_mr) 
